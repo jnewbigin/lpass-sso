@@ -18,7 +18,6 @@ class NameForm extends React.Component {
       if(data) {
         this.setState({"email": data})
       }
-      //this.check_login(state.email)
     });
     window.ipcRenderer.send('get-email');
 
@@ -94,7 +93,7 @@ class NameForm extends React.Component {
   }
 
   render() {
-    if(this.state.email) {
+    if(this.state.email && !this.state.login_link) {
       this.check_login(this.state.email)
     }
     if(this.state.login_link) {
