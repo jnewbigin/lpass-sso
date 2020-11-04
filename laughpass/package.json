@@ -1,0 +1,28 @@
+{
+  "name": "laughpass",
+  "version": "1.0.0",
+  "description": "SSO Login helper for LastPass",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --args --email=john.newbigin@rea-group.com",
+    "dist": "electron-builder build -l tar.gz -l rpm -l deb -m zip"
+  },
+  "repository": "https://github.com/jnewbigin/laughpass",
+  "keywords": [
+    "LastPass",
+    "Okta",
+    "SSO",
+    "hidden master password"
+  ],
+  "author": {
+    "name": "John Newbigin",
+    "email": "jnewbigin@chrysocome.net"
+  },
+  "license": "GPL-2.0-only",
+  "devDependencies": {
+    "electron-builder": "^22.9.1",
+    "electron": "^9.1.1"
+  },
+  "dependencies": {
+  }
+}
