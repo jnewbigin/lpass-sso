@@ -13,12 +13,26 @@
 #GETPIN
 #BYE
 
-LAUGHPASS=/home/john.newbigin/working/laughpass/electron-quick-start/electron-quick-start-linux-x64/electron-quick-start
+if [ -z "${LP_HOME:-}" ] ; then
+  if [ "${XDG_RUNTIME_DIR:-}" ] ; then
+    LP_HOME="$HOME/.local/share/.lpass"
+  else
+    LP_HOME="$HOME/.lpass"
+  fi
+fi
+
+if [ -d "$(dirname "$0")/MacOS" ] ; then
+  LAUGHPASS="$(dirname "$0")/MacOS/laughpass"
+else
+  LAUGHPASS="$(dirname "$0")/laughpass"
+fi
+
 MODE=unknown
 
 while true ; do
   echo "OK"
   read -r LINE
+  # echo "$LINE" > /dev/tty # if you want to debug you can print to the tty
   COMMAND="${LINE%% *}"
   PARAMS="${LINE#* }"
   if [ "$COMMAND" = "SETPROMPT" ] ; then
@@ -42,10 +56,10 @@ while true ; do
       PASSWORD=$(echo "$OUTPUT" | grep '^PASSWORD:' | cut -d : -f 2)
       FRAGMENT=$(echo "$OUTPUT" | grep '^FRAGMENT:' | cut -d : -f 2)
       echo "D $PASSWORD"
-      echo "$FRAGMENT" > ~/.lastpass/fragment # this is not ideal but we need a way to store a value between invocations
+      echo "$FRAGMENT" > "$LP_HOME/fragment" # this is not ideal but we need a way to store a value between invocations
     elif [ "$MODE" = "fragment" ] ; then
-      FRAGMENT=$(cat ~/.lastpass/fragment)
-      rm -f ~/.lastpass/fragment
+      FRAGMENT=$(cat "$LP_HOME/fragment")
+      rm -f "$LP_HOME/fragment"
       echo "D $FRAGMENT"
     else
       exit 1
