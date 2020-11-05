@@ -1,16 +1,16 @@
 # LastPass SSO Login Flow
 
-1. DISCO - Find SSO provider details for the email address
+1. DISCOvery - Find SSO provider details for the email address
 
-* `curl 'https://lastpass.com/lmiapi/login/type?username=john.newbigin%40rea-group.com'`
+* `curl 'https://lastpass.com/lmiapi/login/type?username=john.newbigin%40example.com'`
 
 ```json
 {
   "type": 3,
   "IdentityProviderGUID": "",
   "IdentityProviderURL": "https://accounts.lastpass.com",
-  "OpenIDConnectAuthority": "https://rea.okta.com/oauth2/aus1gevwwk8Eq2No91d8/.well-known/openid-configuration",
-  "OpenIDConnectClientId": "0oa1gevztvwuqzvun1d8",
+  "OpenIDConnectAuthority": "https://example.okta.com/oauth2/aus1gevwwk8Eq2No91d9/.well-known/openid-configuration",
+  "OpenIDConnectClientId": "0oa1gevztvwuqzvun1d9",
   "CompanyId": 12928771,
   "OpenIDConnectKeys": [
     {
@@ -44,8 +44,6 @@ Notes:
 
 1. Initiate the login flow
 
-
-
     let redirect_uri = 'https://accounts.lastpass.com/federated/oidcredirect.html'
     let client_id = OpenIDConnectClientId
     let response_type = 'id_token token'
@@ -53,7 +51,7 @@ Notes:
     let state = random_uuid
     let nonce = random_uuid
     let login_hint = email (NB: we strip the @ to make a username which is what Okta needs)
-    let login_url = this.state.oidc.authorization_endpoint +
+    let login_url = .oidc.authorization_endpoint +
         '?client_id=' + client_id +
         '&redirect_uri=' + redirect_uri +
         '&response_type=' + response_type +
@@ -61,9 +59,10 @@ Notes:
         '&state=' + state +
         '&nonce=' + nonce +
         '&login_hint=' + login_hint
-Redirect to login_url
 
-1. Capture the redirect to https://accounts.lastpass.com/federated/oidcredirect.html
+Using a webview, redirect to `$login_url`
+
+1. Capture the redirect to `https://accounts.lastpass.com/federated/oidcredirect.html`
 
 1. Extract the fragment, id_token, access_token
 The access_token is a jwt which contains the k1 (user key)

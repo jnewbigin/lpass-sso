@@ -4,9 +4,9 @@
   "description": "SSO Login helper for LastPass",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --args --email=john.newbigin@rea-group.com",
-    "dist": "electron-builder build -l rpm",
-    "xdist": "electron-builder build -l tar.gz -l rpm -l deb -m zip"
+    "start": "electron .",
+    "xdist": "electron-builder build -l rpm",
+    "dist": "electron-builder build -l tar.gz -l rpm -l deb -m tar.gz"
   },
   "repository": "https://github.com/jnewbigin/laughpass",
   "keywords": [
@@ -19,9 +19,11 @@
     "name": "John Newbigin",
     "email": "jnewbigin@chrysocome.net"
   },
-  "extraFiles": [
-    "pinentry"
-  ],
+  "build": {
+    "extraFiles": [
+      "pinentry"
+    ]
+  },
   "license": "GPL-2.0-only",
   "devDependencies": {
     "electron-builder": "^22.9.1",
