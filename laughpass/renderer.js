@@ -6,12 +6,24 @@ const API = "https://lastpass.com/lmiapi/login/type?username="
 class NameForm extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {email: '', lastpass: {}, oidc: {}, login_link: ''};
+    this.state = {
+      last_checked_email: false,
+      email: '',
+      lastpass: {},
+      oidc: {},
+      login_link: false,
+      company_id: false,
+      id_token: false,
+      k2: false,
+      fragment_id: false,
+      stage: 0
+    };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
 
-    window.ipcRenderer.on("state", (data) => {
-      console.log(`Received ${data} from main process`);
+    window.ipcRenderer.on("get-stage", (event, data) => {
+      console.log(`Received stage ${data} from main process`);
+      this.setState({"stage": data})
     });
     window.ipcRenderer.on("get-email", (event, data) => {
       console.log(`Received ${data} from main process`);
@@ -19,7 +31,17 @@ class NameForm extends React.Component {
         this.setState({"email": data})
       }
     });
-    window.ipcRenderer.send('get-email');
+
+    window.ipcRenderer.on("get-company-id", (event, data) => {
+      this.setState({"company_id": data})
+      this.get_k2()
+    });
+
+    window.ipcRenderer.on("get-id-token", (event, data) => {
+      this.setState({"id_token": data})
+      this.get_k2()
+    });
+
 
   }
 
@@ -70,18 +92,44 @@ class NameForm extends React.Component {
   }
 
   async check_login(email) {
+    const regex = RegExp('.*@.*\\..*');
     // see if the email is a federated login
-    if(email) {
-      const url = "https://lastpass.com/lmiapi/login/type?username=" + email;
-      await fetch(url, {mode:'no-cors'})
-          .then(res => res.json())
-          .then(res => { this.setState({lastpass: res}) })
-      if(this.state.lastpass.type > 0) {
+    if(regex.test(email)) {
+      if(this.state.last_checked_email != email) {
+        this.setState({last_checked_email: email})
+
+        const url = "https://lastpass.com/lmiapi/login/type?username=" + email;
+        await fetch(url, {mode: 'no-cors'})
+            .then(res => res.json())
+            .then(res => {
+              this.setState({lastpass: res})
+            })
+        if (this.state.lastpass.type > 0) {
           this.begin_login()
         }
+      }
     }
-
   }
+
+  get_k2(event){
+    if(this.state.company_id && this.state.id_token) {
+      console.log('getting k2')
+      const url = "https://accounts.lastpass.com/federatedlogin/api/v1/getkey";
+      const data = {"company_id": this.state.company_id, "id_token": this.state.id_token}
+      fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)})
+          .then(res => res.json())
+          .then(res => {
+            this.setState({k2: res.k2, fragment_id: res.fragment_id});
+            window.ipcRenderer.send("fragment-id", res.fragment_id);
+            window.ipcRenderer.send("k2", res.k2);
+            this.setState({stage: 3})
+          })
+    }
+    else {
+      console.log('Not ready to get k2')
+    }
+  }
+
 
   handleChange(event) {
     this.setState({email: event.target.value})
@@ -93,21 +141,44 @@ class NameForm extends React.Component {
   }
 
   render() {
-    if(this.state.email && !this.state.login_link) {
-      this.check_login(this.state.email)
+    if(this.state.stage == 0) {
+      window.ipcRenderer.send('get-email');
+      window.ipcRenderer.send('get-stage')
+
+       return (<p>Starting...</p>)
     }
-    if(this.state.login_link) {
-      return (
-        <a href={this.state.login_link}>Continue to Okta</a>
-      );
+    else if(this.state.stage == 1) {
+      if (this.state.email && !this.state.login_link) {
+        this.check_login(this.state.email)
+      }
+      if (this.state.login_link) {
+        return (
+            <a href={this.state.login_link}>Continue to Okta</a>
+        );
+      } else {
+        return (
+            <form onSubmit={this.handleSubmit}>
+              <label>
+                Email address:
+                <input type="text" value={this.state.email} onChange={this.handleChange}/>
+              </label>
+            </form>
+        );
+      }
+    }
+    else if(this.state.stage == 2) {
+      if(!this.state.company_id) {
+        window.ipcRenderer.send('get-company-id');
+      }
+      if(!this.state.id_token) {
+        window.ipcRenderer.send('get-id-token');
+      }
+      return (<p>Finishing...</p>)
+    }
+    else if(this.state.stage == 3) {
+      return (<p>Done...</p>)
     } else {
-      return (
-        <form onSubmit={this.handleSubmit}>
-          <label>
-            Email address:
-            <input type="text" value={this.state.email} onChange={this.handleChange} /></label>
-        </form>
-      );
+      return (<p>Stage {this.state.stage} NYI</p>)
     }
   }
 }

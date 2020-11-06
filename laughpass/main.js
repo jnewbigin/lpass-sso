@@ -16,13 +16,13 @@ function createWindow () {
 
   // and load the index.html of the app.
 
-    state = {company_id: false,
+    state = {email: false,
+        company_id: false,
         id_token: false,
         k1: false,
         k2: false,
         hidden_master_key : false,
         fragment_id: false,
-        email: false
   };
 
     if(app.commandLine.hasSwitch('email')) {
@@ -38,8 +38,8 @@ function createWindow () {
          */
         if(details.url.startsWith('https://accounts.lastpass.com/federated/oidcredirect.html')) {
             consume_fragment(details.url.split("#")[1])
-            callback({ redirectURL: 'file://complete.html' })
-            mainWindow.loadFile('complete.html')
+            //callback({ redirectURL: 'file://index.html' })
+            mainWindow.loadFile('index.html')
         } else {
             callback({ cancel: false })
         }
@@ -74,7 +74,16 @@ function createWindow () {
         event.reply('get-email', state.email)
     })
 
-    //mainWindow.webContents.openDevTools()
+    ipcMain.on('get-stage', (event, arg) => {
+        if(state.id_token) {
+            event.reply('get-stage', 2)
+        } else {
+            event.reply('get-stage', 1)
+        }
+    })
+
+
+    mainWindow.webContents.openDevTools()
     mainWindow.loadFile('index.html')
     //mainWindow.webContents.session.setProxy({proxyRules:"https=127.0.0.1:8888"}, function () {    })
 }
