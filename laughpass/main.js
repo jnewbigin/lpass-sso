@@ -83,7 +83,7 @@ function createWindow () {
     })
 
 
-    mainWindow.webContents.openDevTools()
+    //mainWindow.webContents.openDevTools()
     mainWindow.loadFile('index.html')
     //mainWindow.webContents.session.setProxy({proxyRules:"https=127.0.0.1:8888"}, function () {    })
 }
