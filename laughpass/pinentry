@@ -13,20 +13,26 @@
 #GETPIN
 #BYE
 
+# Find the directory that lpass will use to store it's files
+# LP_HOME - if set use this location
+# Systems using XDG - use ~/.local/share/lpass
+# Otherwise ~/.lpass
 if [ -z "${LP_HOME:-}" ] ; then
   if [ "${XDG_RUNTIME_DIR:-}" ] ; then
-    LP_HOME="$HOME/.local/share/.lpass"
+    LP_HOME="$HOME/.local/share/lpass"
   else
     LP_HOME="$HOME/.lpass"
   fi
 fi
 
+# Find the path to the laughpass binary (in relation to this script)
 if [ -d "$(dirname "$0")/MacOS" ] ; then
   LAUGHPASS="$(dirname "$0")/MacOS/laughpass"
 else
   LAUGHPASS="$(dirname "$0")/laughpass"
 fi
 
+# MODE=[unknown|password|fragment]
 MODE=unknown
 
 while true ; do
