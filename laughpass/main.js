@@ -89,26 +89,27 @@ function createWindow () {
 }
 
 function calculate_password() {
+    if(state.k1 && state.k2) {
+        k1 = Buffer.from(state.k1)
+        k2 = Buffer.from(state.k2, encoding = "base64")
 
-    k1 = Buffer.from(state.k1)
-    k2 = Buffer.from(state.k2, "base64")
+        let k1_view = new Uint8Array(k1)
+        let k2_view = new Uint8Array(k2)
+        let k = Buffer.alloc(k1.length)
+        let k_view = new Uint8Array(k)
+        const hash = crypto.createHash('sha256')
 
-    let k1_view = new Uint8Array(k1)
-    let k2_view = new Uint8Array(k2)
-    let k = Buffer.alloc(k1.length)
-    let k_view = new Uint8Array(k)
-    const hash = crypto.createHash('sha256')
+        for (var i = 0; i < k1.length; i++) {
+            k_view[i] = k1_view[i] ^ k2_view[i];
+        }
+        hash.update(k_view)
 
-    for (var i = 0; i < k1.length; i++) {
-        k_view[i] = k1_view[i] ^ k2_view[i];
+        state.hidden_master_key = hash.digest().toString('base64')
+        console.log('PASSWORD:' + state.hidden_master_key)
+        console.log('FRAGMENT:' + state.fragment_id)
+
+        app.quit()
     }
-    hash.update(k_view)
-
-    state.hidden_master_key = hash.digest().toString('base64')
-    console.log('PASSWORD:' + state.hidden_master_key)
-    console.log('FRAGMENT:' + state.fragment_id)
-
-    app.quit()
 }
 
 function consume_fragment(fragment) {
