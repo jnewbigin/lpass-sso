@@ -5,8 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron . --xemail=john.newbigin@rea-group.com",
-    "dist": "electron-builder build -m zip",
-    "xdist": "electron-builder build -l tar.gz -l rpm -l deb -m tar.gz"
+    "dist": "electron-builder build -l tar.gz -l rpm -l deb -m zip"
   },
   "repository": "https://github.com/jnewbigin/laughpass",
   "keywords": [
