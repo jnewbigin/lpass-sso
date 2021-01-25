@@ -1,8 +1,24 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow, session, ipcMain} = require('electron')
+const {app, BrowserWindow, session, ipcMain, net} = require('electron')
 const crypto = require('crypto');
+const { URL, URLSearchParams } = require('url');
 
 const path = require('path')
+
+const startUrl = process.env.ELECTRON_START_URL || url.format({
+    pathname: path.join(__dirname, '../index.html'),
+    protocol: 'file:',
+    slashes: true,
+});
+
+let state = {email: false,
+    company_id: false,
+    id_token: false,
+    k1: false,
+    k2: false,
+    hidden_master_key : false,
+    fragment_id: false,
+};
 
 function createWindow () {
   // Create the browser window.
@@ -10,20 +26,10 @@ function createWindow () {
     width: 400,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(startUrl, 'preload.js'),
+        nodeIntegration: true,
     }
   })
-
-  // and load the index.html of the app.
-
-    state = {email: false,
-        company_id: false,
-        id_token: false,
-        k1: false,
-        k2: false,
-        hidden_master_key : false,
-        fragment_id: false,
-  };
 
     if(app.commandLine.hasSwitch('email')) {
         state.email = app.commandLine.getSwitchValue('email')
@@ -37,13 +43,65 @@ function createWindow () {
             (This is how the browser plugin works too)
          */
         if(details.url.startsWith('https://accounts.lastpass.com/federated/oidcredirect.html')) {
+            console.log('Intercept OIDC')
             consume_fragment(details.url.split("#")[1])
-            //callback({ redirectURL: 'file://index.html' })
-            mainWindow.loadFile('index.html')
+            mainWindow.loadURL(startUrl)
         } else {
             callback({ cancel: false })
         }
     })
+
+    ipcMain.on('query-email', (event, arg) => {
+        const API = "https://lastpass.com/lmiapi/login/type?"
+
+        const search_params = new URLSearchParams({'username': arg})
+        const url = new URL(API + search_params)
+
+        const request = net.request({
+            url: url.toString()
+        })
+
+        request.on('response', (response) => {
+            /*console.log(`STATUS: ${response.statusCode}`);
+            console.log(`HEADERS: ${JSON.stringify(response.headers)}`);*/
+
+            response.on('data', (chunk) => {
+                if(response.statusCode === 200){
+                    event.reply('query-email', JSON.parse(chunk))
+                }
+            });
+        });
+        request.on('error', (error) => {
+            console.log(`ERROR: ${JSON.stringify(error)}`)
+        });
+        request.setHeader('Content-Type', 'application/json');
+        request.end();
+    })
+
+    ipcMain.on('query-oidc', (event, arg) => {
+        const url = new URL(arg)
+
+        const request = net.request({
+            url: url.toString()
+        })
+
+        request.on('response', (response) => {
+            /*console.log(`STATUS: ${response.statusCode}`);
+            console.log(`HEADERS: ${JSON.stringify(response.headers)}`);*/
+
+            response.on('data', (chunk) => {
+                if(response.statusCode === 200){
+                    event.reply('query-oidc', JSON.parse(chunk))
+                }
+            });
+        });
+        request.on('error', (error) => {
+            console.log(`ERROR: ${JSON.stringify(error)}`)
+        });
+        request.setHeader('Content-Type', 'application/json');
+        request.end();
+    })
+
 
     ipcMain.on('company-id', (event, arg) => {
         state.company_id = arg
@@ -76,6 +134,8 @@ function createWindow () {
 
     ipcMain.on('get-stage', (event, arg) => {
         if(state.id_token) {
+            // Can we check if webSecurity on on or off?
+            createWindow()
             event.reply('get-stage', 2)
         } else {
             event.reply('get-stage', 1)
@@ -84,7 +144,8 @@ function createWindow () {
 
 
     //mainWindow.webContents.openDevTools()
-    mainWindow.loadFile('index.html')
+    mainWindow.loadURL(path.join(startUrl, 'index.html'));
+    //mainWindow.loadFile('index.html')
     //mainWindow.webContents.session.setProxy({proxyRules:"https=127.0.0.1:8888"}, function () {    })
 }
 

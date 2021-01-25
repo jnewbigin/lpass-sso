@@ -1,7 +1,8 @@
+import React from 'react'
+import ReactDOM from 'react-dom'
 
 const e = React.createElement;
-
-const API = "https://lastpass.com/lmiapi/login/type?username=" 
+const { ipcRenderer } = window.require('electron');
 
 class NameForm extends React.Component {
   constructor(props) {
@@ -21,27 +22,39 @@ class NameForm extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
 
-    window.ipcRenderer.on("get-stage", (event, data) => {
+    ipcRenderer.on("get-stage", (event, data) => {
       console.log(`Received stage ${data} from main process`);
       this.setState({"stage": data})
     });
-    window.ipcRenderer.on("get-email", (event, data) => {
+
+    ipcRenderer.on("get-email", (event, data) => {
       console.log(`Received ${data} from main process`);
       if(data) {
         this.setState({"email": data})
       }
     });
 
-    window.ipcRenderer.on("get-company-id", (event, data) => {
+    ipcRenderer.on("get-company-id", (event, data) => {
       this.setState({"company_id": data})
       this.get_k2()
     });
 
-    window.ipcRenderer.on("get-id-token", (event, data) => {
+    ipcRenderer.on("get-id-token", (event, data) => {
       this.setState({"id_token": data})
       this.get_k2()
     });
 
+    ipcRenderer.on('query-email', (event, data) => {
+      this.setState({"lastpass": data})
+      if (this.state.lastpass.type > 0) {
+        this.begin_login()
+      }
+    })
+
+    ipcRenderer.on('query-oidc', (event, data) => {
+      this.setState({"oidc": data})
+        this.continue_login()
+    })
 
   }
 
@@ -50,7 +63,7 @@ class NameForm extends React.Component {
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = (dt + Math.random()*16)%16 | 0;
       dt = Math.floor(dt/16);
-      return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+      return (c==='x' ? r :((r&0x3)|0x8)).toString(16);
     });
     return uuid;
   }
@@ -79,34 +92,27 @@ class NameForm extends React.Component {
   }
 
   async begin_login() {
-    if(this.state.lastpass.type == 3) {
+    if(this.state.lastpass.type === 3) {
       console.log("company_id=" + this.state.lastpass.CompanyId)
-      window.ipcRenderer.send("company-id", this.state.lastpass.CompanyId);
-      let oidc = await fetch(this.state.lastpass.OpenIDConnectAuthority)
+      ipcRenderer.send("company-id", this.state.lastpass.CompanyId);
+      ipcRenderer.send("query-oidc", this.state.lastpass.OpenIDConnectAuthority)
+      /*await fetch(this.state.lastpass.OpenIDConnectAuthority)
           .then(res => res.json())
           .then(res => this.setState({oidc: res}))
-      this.continue_login()
+      this.continue_login()*/
     } else {
       alert("Only oauth accounts are supported")
     }
   }
 
   async check_login(email) {
-    const regex = RegExp('.*@.*\\..*');
+    const regex = RegExp('.+@.+\\..+');
     // see if the email is a federated login
     if(regex.test(email)) {
-      if(this.state.last_checked_email != email) {
+      if(this.state.last_checked_email !== email) {
         this.setState({last_checked_email: email})
 
-        const url = "https://lastpass.com/lmiapi/login/type?username=" + email;
-        await fetch(url, {mode: 'no-cors'})
-            .then(res => res.json())
-            .then(res => {
-              this.setState({lastpass: res})
-            })
-        if (this.state.lastpass.type > 0) {
-          this.begin_login()
-        }
+        ipcRenderer.send("query-email", email);
       }
     }
   }
@@ -120,8 +126,8 @@ class NameForm extends React.Component {
           .then(res => res.json())
           .then(res => {
             this.setState({k2: res.k2, fragment_id: res.fragment_id});
-            window.ipcRenderer.send("fragment-id", res.fragment_id);
-            window.ipcRenderer.send("k2", res.k2);
+            ipcRenderer.send("fragment-id", res.fragment_id);
+            ipcRenderer.send("k2", res.k2);
             this.setState({stage: 3})
           })
     }
@@ -141,13 +147,13 @@ class NameForm extends React.Component {
   }
 
   render() {
-    if(this.state.stage == 0) {
-      window.ipcRenderer.send('get-email');
-      window.ipcRenderer.send('get-stage')
+    if(this.state.stage === 0) {
+      ipcRenderer.send('get-email');
+      ipcRenderer.send('get-stage')
 
        return (<p>Starting...</p>)
     }
-    else if(this.state.stage == 1) {
+    else if(this.state.stage === 1) {
       if (this.state.email && !this.state.login_link) {
         this.check_login(this.state.email)
       }
@@ -166,16 +172,16 @@ class NameForm extends React.Component {
         );
       }
     }
-    else if(this.state.stage == 2) {
+    else if(this.state.stage === 2) {
       if(!this.state.company_id) {
-        window.ipcRenderer.send('get-company-id');
+        ipcRenderer.send('get-company-id');
       }
       if(!this.state.id_token) {
-        window.ipcRenderer.send('get-id-token');
+        ipcRenderer.send('get-id-token');
       }
       return (<p>Finishing...</p>)
     }
-    else if(this.state.stage == 3) {
+    else if(this.state.stage === 3) {
       return (<p>Done...</p>)
     } else {
       return (<p>Stage {this.state.stage} NYI</p>)
