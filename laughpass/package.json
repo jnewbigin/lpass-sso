@@ -2,10 +2,16 @@
   "name": "laughpass",
   "version": "1.0.2",
   "description": "SSO Login helper for LastPass",
-  "main": "main.js",
+  "main": "electron/main.js",
+  "private": true,
   "scripts": {
-    "start": "electron . --xemail=john.newbigin@rea-group.com",
-    "dist": "electron-builder build -l tar.gz -l rpm -l deb -m zip"
+    "xstart": "electron . --xemail=john.newbigin@rea-group.com",
+    "lint": "eslint 'src/*.js electron/*.js'",
+    "dist": "electron-builder build -l tar.gz -l rpm -l deb -m zip",
+    "start": "export BROWSER=none && react-scripts start",
+    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron --inspect=5858 .",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
   },
   "repository": "https://github.com/jnewbigin/laughpass",
   "keywords": [
@@ -25,8 +31,40 @@
   },
   "license": "GPL-2.0-only",
   "devDependencies": {
-    "electron": "^10.1.5",
-    "electron-builder": "^22.9.1"
+    "electron": "^11.2.0",
+    "electron-builder": "^22.9.1",
+    "eslint": "^7.18.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.22.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.3",
+    "@testing-library/user-event": "^12.6.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-scripts": "4.0.1",
+    "web-vitals": "^0.2.4"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }
