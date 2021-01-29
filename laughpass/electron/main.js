@@ -2,14 +2,11 @@
 const { app, BrowserWindow, session, ipcMain, net } = require('electron')
 const crypto = require('crypto')
 const { URL, URLSearchParams } = require('url')
-
 const path = require('path')
 
-const startUrl = process.env.ELECTRON_START_URL || url.format({
-  pathname: path.join(__dirname, '../index.html'),
-  protocol: 'file:',
-  slashes: true
-})
+const startUrl = process.env.ELECTRON_START_URL || "file://" + path.join(__dirname, '../build')
+
+console.log(startUrl)
 
 const state = {
   email: false,
@@ -36,7 +33,7 @@ function createWindow () {
     state.email = app.commandLine.getSwitchValue('email')
   }
 
-  ses = session.defaultSession
+  const ses = session.defaultSession
 
   ses.webRequest.onBeforeRequest((details, callback) => {
     /*
@@ -44,20 +41,18 @@ function createWindow () {
             (This is how the browser plugin works too)
          */
     if (details.url.startsWith('https://accounts.lastpass.com/federated/oidcredirect.html')) {
-      console.log('Intercept OIDC')
-      consume_fragment(details.url.split('#')[1])
-      mainWindow.loadURL(startUrl)
-      //  mainWindow.loadFile('index.html')
+      consumeFragment(details.url.split('#')[1])
+      mainWindow.loadURL(path.join(startUrl, 'index.html'))
     } else {
-      callback({ cancel: false })
+      callback({ cancel: false }) // eslint-disable-line node/no-callback-literal
     }
   })
 
   ipcMain.on('query-email', (event, arg) => {
     const API = 'https://lastpass.com/lmiapi/login/type?'
 
-    const search_params = new URLSearchParams({ username: arg })
-    const url = new URL(API + search_params)
+    const searchParams = new URLSearchParams({ username: arg })
+    const url = new URL(API + searchParams)
 
     const request = net.request({
       url: url.toString()
@@ -85,9 +80,6 @@ function createWindow () {
     })
 
     request.on('response', (response) => {
-      /* console.log(`STATUS: ${response.statusCode}`);
-            console.log(`HEADERS: ${JSON.stringify(response.headers)}`); */
-
       response.on('data', (chunk) => {
         if (response.statusCode === 200) {
           event.reply('query-oidc', JSON.parse(chunk))
@@ -106,17 +98,6 @@ function createWindow () {
     event.reply('company-id', 'thanks')
   })
 
-  ipcMain.on('k2', (event, arg) => {
-    state.k2 = arg
-    event.reply('k2', 'thanks')
-    calculate_password()
-  })
-
-  ipcMain.on('fragment-id', (event, arg) => {
-    state.fragment_id = arg
-    event.reply('fragement-id', 'thanks')
-  })
-
   ipcMain.on('get-company-id', (event, arg) => {
     event.reply('get-company-id', state.company_id)
   })
@@ -132,6 +113,7 @@ function createWindow () {
   ipcMain.on('get-stage', (event, arg) => {
     if (state.id_token) {
       event.reply('get-stage', 2)
+      getKey()
     } else {
       event.reply('get-stage', 1)
     }
@@ -139,25 +121,54 @@ function createWindow () {
 
   // mainWindow.webContents.openDevTools()
   mainWindow.loadURL(path.join(startUrl, 'index.html'))
-  // mainWindow.loadFile('index.html')
   // mainWindow.webContents.session.setProxy({proxyRules:"https=127.0.0.1:8888"}, function () {    })
 }
 
-function calculate_password () {
-  if (state.k1 && state.k2) {
-    k1 = Buffer.from(state.k1)
-    k2 = Buffer.from(state.k2, encoding = 'base64')
+function getKey () {
+  const API = 'https://accounts.lastpass.com/federatedlogin/api/v1/getkey'
+  const url = new URL(API)
 
-    const k1_view = new Uint8Array(k1)
-    const k2_view = new Uint8Array(k2)
+  const payload = { company_id: state.company_id, id_token: state.id_token }
+
+  const request = net.request({
+    method: 'POST',
+    url: url.toString()
+  })
+
+  request.on('response', (response) => {
+    response.on('data', (chunk) => {
+      if (response.statusCode === 200) {
+        const data = JSON.parse(chunk)
+        state.k2 = data.k2
+        state.fragment_id = data.fragment_id
+        calculatePassword()
+      }
+    })
+  })
+  request.on('error', (error) => {
+    console.log(`ERROR: ${JSON.stringify(error)}`)
+  })
+  request.setHeader('Content-Type', 'application/json')
+  request.write(JSON.stringify(payload))
+
+  request.end()
+}
+
+function calculatePassword () {
+  if (state.k1 && state.k2) {
+    const k1 = Buffer.from(state.k1)
+    const k2 = Buffer.from(state.k2, encoding = 'base64') // eslint-disable-line no-undef
+
+    const k1View = new Uint8Array(k1)
+    const k2View = new Uint8Array(k2)
     const k = Buffer.alloc(k1.length)
-    const k_view = new Uint8Array(k)
+    const kView = new Uint8Array(k)
     const hash = crypto.createHash('sha256')
 
     for (let i = 0; i < k1.length; i++) {
-      k_view[i] = k1_view[i] ^ k2_view[i]
+      kView[i] = k1View[i] ^ k2View[i]
     }
-    hash.update(k_view)
+    hash.update(kView)
 
     state.hidden_master_key = hash.digest().toString('base64')
     console.log('PASSWORD:' + state.hidden_master_key)
@@ -167,32 +178,33 @@ function calculate_password () {
   }
 }
 
-function consume_fragment (fragment) {
+function consumeFragment (fragment) {
   fragment.split('&').forEach(pram => {
-    data = pram.split('=')
+    const data = pram.split('=')
     if (data[0] === 'access_token') {
-      consume_access_token(data[1])
+      consumeAccessToken(data[1])
     }
     if (data[0] === 'id_token') {
-      consume_id_token(data[1])
+      consumeIdToken(data[1])
     }
   })
 }
 
-function consume_access_token (jwt) {
-  data = jwt.split('.')
-  payload = data[1]
-  json = JSON.parse(Buffer.from(payload, 'base64').toString())
+function consumeAccessToken (jwt) {
+  const data = jwt.split('.')
+  const payload = data[1]
+  const json = JSON.parse(Buffer.from(payload, 'base64').toString())
   state.k1 = json.LastPassK1
 }
 
-function consume_id_token (jwt) {
+function consumeIdToken (jwt) {
   state.id_token = jwt
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+
 app.whenReady().then(() => {
   createWindow()
 

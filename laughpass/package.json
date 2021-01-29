@@ -6,10 +6,10 @@
   "private": true,
   "scripts": {
     "xstart": "electron . --xemail=john.newbigin@rea-group.com",
-    "lint": "eslint 'src/*.js electron/*.js'",
+    "lint": "eslint src/*.js electron/*.js",
     "dist": "electron-builder build -l tar.gz -l rpm -l deb -m zip",
     "start": "export BROWSER=none && react-scripts start",
-    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron --inspect=5858 .",
+    "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
@@ -25,10 +25,19 @@
     "email": "jnewbigin@chrysocome.net"
   },
   "build": {
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "electron/**/*"
+    ],
+    "extraMetadata": {
+      "main": "./electron/main.js"
+    },
     "extraFiles": [
       "pinentry"
     ]
   },
+  "homepage": ".",
   "license": "GPL-2.0-only",
   "devDependencies": {
     "electron": "^11.2.0",
