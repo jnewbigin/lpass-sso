@@ -4,9 +4,7 @@ const crypto = require('crypto')
 const { URL, URLSearchParams } = require('url')
 const path = require('path')
 
-const startUrl = process.env.ELECTRON_START_URL || "file://" + path.join(__dirname, '../build')
-
-console.log(startUrl)
+const startUrl = process.env.ELECTRON_START_URL || 'file://' + path.join(__dirname, '../build')
 
 const state = {
   email: false,
@@ -14,8 +12,14 @@ const state = {
   id_token: false,
   k1: false,
   k2: false,
-  hidden_master_key: false,
   fragment_id: false
+}
+
+function processLoginType (data) {
+  if (data.type === 3) {
+    state.company_id = data.CompanyId
+    // get the OIDC data
+  }
 }
 
 function createWindow () {
@@ -24,8 +28,8 @@ function createWindow () {
     width: 400,
     height: 600,
     webPreferences: {
-      preload: path.join(startUrl, 'preload.js'),
-      nodeIntegration: true
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true
     }
   })
 
@@ -61,12 +65,15 @@ function createWindow () {
     request.on('response', (response) => {
       response.on('data', (chunk) => {
         if (response.statusCode === 200) {
+          const data = JSON.parse(chunk)
+          processLoginType(data)
+          state.company_id = data
           event.reply('query-email', JSON.parse(chunk))
         }
       })
     })
     request.on('error', (error) => {
-      console.log(`ERROR: ${JSON.stringify(error)}`)
+      console.error(`ERROR: ${JSON.stringify(error)}`)
     })
     request.setHeader('Content-Type', 'application/json')
     request.end()
@@ -87,7 +94,7 @@ function createWindow () {
       })
     })
     request.on('error', (error) => {
-      console.log(`ERROR: ${JSON.stringify(error)}`)
+      console.error(`ERROR: ${JSON.stringify(error)}`)
     })
     request.setHeader('Content-Type', 'application/json')
     request.end()
@@ -146,7 +153,7 @@ function getKey () {
     })
   })
   request.on('error', (error) => {
-    console.log(`ERROR: ${JSON.stringify(error)}`)
+    console.error(`ERROR: ${JSON.stringify(error)}`)
   })
   request.setHeader('Content-Type', 'application/json')
   request.write(JSON.stringify(payload))
@@ -170,8 +177,8 @@ function calculatePassword () {
     }
     hash.update(kView)
 
-    state.hidden_master_key = hash.digest().toString('base64')
-    console.log('PASSWORD:' + state.hidden_master_key)
+    const hiddenMasterKey = hash.digest().toString('base64')
+    console.log('PASSWORD:' + hiddenMasterKey)
     console.log('FRAGMENT:' + state.fragment_id)
 
     app.quit()

@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 
 const e = React.createElement
-const { ipcRenderer } = window.require('electron')
 
 class NameForm extends React.Component {
   constructor (props) {
@@ -22,36 +21,26 @@ class NameForm extends React.Component {
     this.handleChange = this.handleChange.bind(this)
     this.handleSubmit = this.handleSubmit.bind(this)
 
-    ipcRenderer.on('get-stage', (event, data) => {
-      console.log(`Received stage ${data} from main process`)
-      this.setState({ stage: data })
+    window.electron.onGetStage((stage) => {
+      console.log(`Received stage ${stage} from main process`)
+      this.setState({ stage: stage })
     })
 
-    ipcRenderer.on('get-email', (event, data) => {
-      console.log(`Received ${data} from main process`)
-      if (data) {
-        this.setState({ email: data })
+    window.electron.onGetEmail((email) => {
+      console.log(`Received ${email} from main process`)
+      if (email) {
+        this.setState({ email: email })
       }
     })
-    /*
-    ipcRenderer.on('get-company-id', (event, data) => {
-      this.setState({ company_id: data })
-      this.getK2()
-    })
 
-    ipcRenderer.on('get-id-token', (event, data) => {
-      this.setState({ id_token: data })
-      this.getK2()
-    })
-    */
-    ipcRenderer.on('query-email', (event, data) => {
+    window.electron.onQueryEmail((data) => {
       this.setState({ lastpass: data })
       if (this.state.lastpass.type > 0) {
         this.beginLogin()
       }
     })
 
-    ipcRenderer.on('query-oidc', (event, data) => {
+    window.electron.onQueryOIDC((data) => {
       this.setState({ oidc: data })
       this.continueLogin()
     })
@@ -71,6 +60,7 @@ class NameForm extends React.Component {
   }
 
   continueLogin () {
+    const endpoint = new URL(this.state.oidc.authorization_endpoint)
     const redirectUri = 'https://accounts.lastpass.com/federated/oidcredirect.html'
     const clientId = this.state.lastpass.OpenIDConnectClientId
     const responseType = 'id_token token'
@@ -86,14 +76,14 @@ class NameForm extends React.Component {
         '&state=' + state +
         '&nonce=' + nonce +
         '&login_hint=' + loginHint
-    this.setState({ login_link: loginUrl })
+    this.setState({ login_link: loginUrl, login_link_name: endpoint.host })
   }
 
   async beginLogin () {
     if (this.state.lastpass.type === 3) {
       console.log('company_id=' + this.state.lastpass.CompanyId)
-      ipcRenderer.send('company-id', this.state.lastpass.CompanyId)
-      ipcRenderer.send('query-oidc', this.state.lastpass.OpenIDConnectAuthority)
+      window.electron.setCompandId(this.state.lastpass.CompanyId)
+      window.electron.queryOIDC(this.state.lastpass.OpenIDConnectAuthority)
     } else {
       alert('Only oauth accounts are supported')
     }
@@ -106,18 +96,18 @@ class NameForm extends React.Component {
       if (this.state.last_checked_email !== email) {
         this.setState({ last_checked_email: email })
 
-        ipcRenderer.send('query-email', email)
+        window.electron.queryEmail(email)
       }
     }
   }
-
+  /*
   getK2 (_event) {
     if (this.state.company_id && this.state.id_token) {
       console.log('getting k2')
     } else {
       console.log('Not ready to get k2')
     }
-  }
+  } */
 
   handleChange (event) {
     this.setState({ email: event.target.value })
@@ -131,8 +121,8 @@ class NameForm extends React.Component {
 
   render () {
     if (this.state.stage === 0) {
-      ipcRenderer.send('get-email')
-      ipcRenderer.send('get-stage')
+      window.electron.getEmail()
+      window.electron.getStage()
 
       return (<p>Starting...</p>)
     } else if (this.state.stage === 1) {
@@ -141,7 +131,7 @@ class NameForm extends React.Component {
       }
       if (this.state.login_link) {
         return (
-            <a href={this.state.login_link}>Continue to Okta</a>
+            <a href={this.state.login_link}>Continue to {this.state.login_link_name}</a>
         )
       } else {
         return (
