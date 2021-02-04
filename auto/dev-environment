@@ -3,7 +3,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-docker run --rm -ti \
+if [[ -t 0 ]] && [[ -t 1 ]] && [[ -t 2 ]] ; then
+  TTY='-ti'
+else
+  TTY=''
+fi
+
+docker run --rm $TTY \
  --env ELECTRON_CACHE="/root/.cache/electron" \
  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
  -v ${PWD}/laughpass:/project \
