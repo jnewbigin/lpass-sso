@@ -3,4 +3,4 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-auto/dev-environment npm run lint "$@"
+auto/dev-environment yarn && yarn run lint "$@"
