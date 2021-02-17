@@ -7,7 +7,8 @@
   "scripts": {
     "xstart": "electron . --xemail=john.newbigin@rea-group.com",
     "lint": "eslint src/*.js electron/*.js",
-    "dist": "electron-builder build -l tar.gz -l rpm -l deb -m zip",
+    "dist": "electron-builder build -l tar.gz",
+    "xdist": "electron-builder build -l tar.gz -l rpm -l deb -m zip",
     "start": "export BROWSER=none && react-scripts start",
     "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
     "build": "react-scripts build",
