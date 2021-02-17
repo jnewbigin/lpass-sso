@@ -16,4 +16,14 @@ docker run --rm $TTY \
  -v ${PWD}/laughpass/node_modules:/project/node_modules \
  -v ~/.cache/electron:/root/.cache/electron \
  -v ~/.cache/electron-builder:/root/.cache/electron-builder \
+ electronuserland/builder:12 yarn install
+
+docker run --rm $TTY \
+ --env ELECTRON_CACHE="/root/.cache/electron" \
+ --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
+ -v ${PWD}/laughpass:/project \
+ -v ${PWD}/laughpass/node_modules:/project/node_modules \
+ -v ~/.cache/electron:/root/.cache/electron \
+ -v ~/.cache/electron-builder:/root/.cache/electron-builder \
  electronuserland/builder:12 "$@"
+
