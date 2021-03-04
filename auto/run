@@ -3,5 +3,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-cd laughpass
+cd lpass-sso
 exec scl enable rh-nodejs12 -- npm start

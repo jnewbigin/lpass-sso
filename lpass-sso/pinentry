@@ -1,8 +1,8 @@
 #!/bin/bash
-#set -e -u -o pipefail
+set -e -u -o pipefail
 
 # A bash script which implements the GPG pin entry protocol
-# and can invoke laughpass as required to get the password out of the SSO
+# and can invoke lpass-sso as required to get the password out of the SSO
 
 #SETTITLE LastPass CLI
 #SETPROMPT Master Password:
@@ -25,11 +25,11 @@ if [ -z "${LP_HOME:-}" ] ; then
   fi
 fi
 
-# Find the path to the laughpass binary (in relation to this script)
+# Find the path to the lpass-sso binary (in relation to this script)
 if [ -d "$(dirname "$0")/MacOS" ] ; then
-  LAUGHPASS="$(dirname "$0")/MacOS/laughpass"
+  LPASS_SSO="$(dirname "$0")/MacOS/lpass-sso"
 else
-  LAUGHPASS="$(dirname "$0")/laughpass"
+  LPASS_SSO="$(dirname "$0")/lpass-sso"
 fi
 
 # MODE=[unknown|password|fragment]
@@ -58,7 +58,7 @@ while true ; do
 
   if [ "$COMMAND" = "GETPIN" ] ; then
     if [ "$MODE" = "password" ] ; then
-      OUTPUT=$($LAUGHPASS --email="$EMAIL")
+      OUTPUT=$($LPASS_SSO --email="$EMAIL")
       PASSWORD=$(echo "$OUTPUT" | grep '^PASSWORD:' | cut -d : -f 2)
       FRAGMENT=$(echo "$OUTPUT" | grep '^FRAGMENT:' | cut -d : -f 2)
       echo "D $PASSWORD"

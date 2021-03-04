@@ -1,11 +1,11 @@
 {
-  "name": "laughpass",
+  "name": "lpass-sso",
   "version": "1.0.2",
   "description": "SSO Login helper for LastPass",
   "main": "electron/main.js",
   "private": true,
   "scripts": {
-    "xstart": "electron . --xemail=john.newbigin@rea-group.com",
+    "xstart": "electron . --xemail=jnewbigin@example.com",
     "lint": "eslint src/*.js electron/*.js",
     "dist": "electron-builder build -l tar.gz",
     "xdist": "electron-builder build -l tar.gz -l rpm -l deb -m zip",
@@ -14,7 +14,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test"
   },
-  "repository": "https://github.com/jnewbigin/laughpass",
+  "repository": "https://github.com/jnewbigin/lpass-sso",
   "keywords": [
     "LastPass",
     "Okta",

@@ -22,8 +22,8 @@ These installation steps have been tested on macOS Catalina (10.15).
 
 > NOTE: I am in no way associated with LastPass. These instructions got me up and running with the new SSO modifications, but these docs may need some updates to adhere to LastPass’ best practices and workflow.  
 
-## Installing the LaughPass Electron app
-Navigate to the `laughpass/laughpass/` directory.
+## Installing the LPass-SSO Electron app
+Navigate to the `lpass-sso/lpass-sso/` directory.
 
 ```
 npm install
