@@ -13,11 +13,15 @@ jobs:
       - run: auto/build
       - name: Upload Release Asset
         id: upload-release-asset
-        uses: svenstaro/upload-release-action@v2
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: 'laughpass/dist/*.tar.gz'
+          files: |
+           'lpass-sso/dist/*.tar.gz'
+           'lpass-sso/dist/*.deb'
+           'lpass-sso/dist/*.rpm'
+           'lpass-sso/dist/*.zip'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: v${{ github.ref }}
-          overwrite: false
-          file_glob: true
 
