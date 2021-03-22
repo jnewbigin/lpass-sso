@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [[ -t 0 ]] && [[ -t 1 ]] && [[ -t 2 ]] ; then
+  TTY='-ti'
+else
+  TTY=''
+fi
+
+docker run --rm $TTY \
+ --env ELECTRON_CACHE="/root/.cache/electron" \
+ --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
+ -v ${PWD}/lpass-sso:/project \
+ -v ${PWD}/lpass-sso/node_modules:/project/node_modules \
+ -v ~/.cache/electron:/root/.cache/electron \
+ -v ~/.cache/electron-builder:/root/.cache/electron-builder \
+ electronuserland/builder:12 "$@"
+

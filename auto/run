@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+cd lpass-sso
+exec scl enable rh-nodejs12 -- npm start
