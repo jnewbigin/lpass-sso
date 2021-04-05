@@ -1,7 +1,7 @@
 {
   "name": "lpass-sso",
   "__next_line_will_be_maintained_by_github_action": "[bump]",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "SSO Login helper for LastPass",
   "main": "electron/main.js",
   "private": true,
