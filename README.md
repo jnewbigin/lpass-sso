@@ -2,6 +2,19 @@
 
 Use `lpass` the lastpass cli tool with Okta SSO!
 
+# Instructions for MAC users
+
+pre-built binaries which should be working for mac users:
+
+* Download lpass-sso-...-mac.zip from https://github.com/jnewbigin/lpass-sso/releases
+* Open a terminal
+* `sudo ditto -xk --sequesterRsrc ~/Downloads/lpass-sso-...-mac.zip /Applications`
+* `export LPASS_PINENTRY=/Applications/lpass-sso.app/Contents/pinentry`
+* Download lpass-mac from https://github.com/jnewbigin/lastpass-cli/releases/download/
+* `chmod a+x cp ~/Downloads/lpass-mac`
+* `sudo cp ~/Downloads/lpass-mac /usr/local/bin/lpass`
+
+
 # Usage
 
 1. install the package for your platform (see below)
