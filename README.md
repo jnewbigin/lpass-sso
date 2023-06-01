@@ -40,12 +40,22 @@ pre-built binaries which should be working for mac users:
 
 * Download lpass-sso-...-mac.zip from https://github.com/jnewbigin/lpass-sso/releases
 * Open a terminal
-* `sudo ditto -xk --sequesterRsrc ~/Downloads/lpass-sso-...-mac.zip /Applications`
+* `sudo ditto -xk --sequesterRsrc ~/Downloads/lpass-sso-...-mac.zip /Applications/lpass-sso`
+* `sudo mv Applications/lpass-sso/lpass-sso.app Applications/lpass-sso.app`
 * `export LPASS_PINENTRY=/Applications/lpass-sso.app/Contents/pinentry`
-* Download lpass-mac from https://github.com/jnewbigin/lastpass-cli/releases/download/
-* `chmod a+x cp ~/Downloads/lpass-mac`
+* Download lpass-mac from https://github.com/jnewbigin/lastpass-cli/releases/
+* `chmod a+x ~/Downloads/lpass-mac`
 * `sudo cp ~/Downloads/lpass-mac /usr/local/bin/lpass`
 
+* Run Applications/lpass-sso/lpass-sso.app Applications/lpass-sso.app
+  * If prompted because _the developer cannnot be verified_
+  * Open Systems Preferences -> Security & Privacy
+  * Set to _Open Anyway_
+  * Launch Applications/lpass-sso/lpass-sso.app Applications/lpass-sso.app again
+  * When prompted, select _OK_
+* If not prompted, then you are OK to close the window and continue
+
+*Note:* The first time you use `lpass login --sso ...` you may be prompted to login twice. This seems to be related to the Security & Privacy settings
 
 # Usage
 

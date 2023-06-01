@@ -42,7 +42,7 @@
   "homepage": ".",
   "license": "GPL-2.0-only",
   "devDependencies": {
-    "electron": "^11.2.0",
+    "electron": "^18.3.7",
     "electron-builder": "^22.9.1",
     "eslint": "^8.41.0",
     "eslint-config-standard": "^16.0.2",
