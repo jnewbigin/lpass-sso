@@ -1,6 +1,6 @@
 # lpass sso
 
-`lpass-sso` allows you to use the `lpass` the lastpass command line interface (cli) tool with Okta SSO.
+`lpass-sso` allows you to use `lpass`, the lastpass command line interface (cli) tool with Okta SSO.
 
 *Note:* a patched version of `lpass` (lastpass-cli) is required
 
