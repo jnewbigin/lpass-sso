@@ -1,6 +1,38 @@
 # lpass sso
 
-Use `lpass` the lastpass cli tool with Okta SSO!
+`lpass-sso` allows you to use `lpass`, the lastpass command line interface (cli) tool with Okta SSO.
+
+*Note:* a patched version of `lpass` (lastpass-cli) is required
+
+# Pre-build binaries for OSX
+
+Pre-built binaries exist for use on Mac OSX.
+* [Installing on OSX](docs/install-osx.md)
+
+# Pre-built binaries for Linux
+
+Pre-built binaries exist for linux
+* [Installing on CentOS](docs/install-centos.md)
+* [Installing on Ubuntu](docs/install-ubuntu.md)
+
+# Building from source
+`lpass-sso` can be built from code to match your system
+* [Building with docker](docs/build-with-docker.md)
+* [Building native](docs/build-native.md)
+* [Development](docs/development.md)
+
+# Building lastpass-cli
+`lpass` can be built to match your system
+
+* [Building lastpass cli](docs/build-lastpass-cli.md)
+
+# FAQ
+* How does lpass-sso work
+* How does lpaspass with with Okta
+* [What is `pinentry`](docs/pinentry.md)
+
+
+=== OLD ===
 
 # Instructions for MAC users
 
@@ -36,7 +68,7 @@ pre-built binaries which should be working for mac users:
 1. Complete the login via Okta in the web browser
 
 1. Your session will be valid for one hour.
-   
+
    Configure with the `LPASS_AGENT_TIMEOUT` environment variable (seconds)
 
 # Installation
@@ -53,7 +85,7 @@ npm install
 npm start
 ```
 
-Test the installation by entering your email address and you should be redirected to the Okta login. 
+Test the installation by entering your email address and you should be redirected to the Okta login.
 
 > NOTE: If you receive a “400 Bad Request” error, try closing the window and restarting the login process. It should work the second time.  
 
@@ -72,7 +104,7 @@ sudo make install
 
 > NOTE: due to SIP on macOS, you may have trouble writing to the default path `make install` tries to install lpass to. To get around this I used the directory `/usr/local/` instead. Use this command if you get an error about permissions: `cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/local` .   
 
-If everything worked correctly, you should now be able to use the command `lpass login --sso email_address@whatever.com` to authenticate to the CLI. 
+If everything worked correctly, you should now be able to use the command `lpass login --sso email_address@whatever.com` to authenticate to the CLI.
 
 If you run into any issues, the GitHub Issues page has a lot of good info on previous/current problems, but you can also contact LastPass support by opening a ticket: [How do I contact customer support for LastPass? - LastPass Support](https://support.logmeininc.com/lastpass/help/how-do-i-contact-customer-support-for-lastpass-lp010121)
 
